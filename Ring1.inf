@@ -1,0 +1,77 @@
+;
+; Ring1.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System ; TODO: specify appropriate Class
+ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318} ; TODO: specify appropriate ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=Ring1.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+PnpLockdown=1
+
+[DestinationDirs]
+DefaultDestDir = 12
+Ring1_Device_CoInstaller_CopyFiles = 11
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+Ring1.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%Ring1.DeviceDesc%=Ring1_Device, Root\Ring1 ; TODO: edit hw-id
+
+[Ring1_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+Ring1.sys
+
+;-------------- Service installation
+[Ring1_Device.NT.Services]
+AddService = Ring1,%SPSVCINST_ASSOCSERVICE%, Ring1_Service_Inst
+
+; -------------- Ring1 driver install sections
+[Ring1_Service_Inst]
+DisplayName    = %Ring1.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\Ring1.sys
+
+;
+;--- Ring1_Device Coinstaller installation ------
+;
+
+[Ring1_Device.NT.CoInstallers]
+AddReg=Ring1_Device_CoInstaller_AddReg
+CopyFiles=Ring1_Device_CoInstaller_CopyFiles
+
+[Ring1_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[Ring1_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[Ring1_Device.NT.Wdf]
+KmdfService =  Ring1, Ring1_wdfsect
+[Ring1_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+DiskName = "Ring1 Installation Disk"
+Ring1.DeviceDesc = "Ring1 Device"
+Ring1.SVCDESC = "Ring1 Service"
